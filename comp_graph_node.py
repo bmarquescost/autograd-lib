@@ -1,3 +1,5 @@
+import numpy as np
+
 '''
     Classe Node:
     - Armazena informação sobre um nó dentro do grafo computacional
@@ -73,7 +75,7 @@ class Node:
 
     ### Operações derivadas da soma e multiplicação
     def __neg__(self): # Negação
-        return self * -1
+        return self * (-1)
     
     def __radd__(self, b): # Alternativa para soma b + a
         return self + b
@@ -88,11 +90,23 @@ class Node:
         return b + (-self)
     
     def __truediv__(self, b): # divisão a / b
-        return self * b ** -1
+        return self * b **( -1)
     
     def __rtruediv__(self, b): # divisão b / a
-        return b * self ** -1
+        return b * self **( -1)
     
+    def __gt__(self, other):
+        return self.scalar > other.scalar
+    
+    def __lt__(self, other):
+        return self.scalar < other.scalar
+    
+    def __ge__(self, other):
+        return self.scalar >= other.scalar
+    
+    def __le__(self, other):
+        return self.scalar <= other.scalar
+
     ### Representação da estrutura/objeto Node
     def __repr__(self):
         return f"Node(scalar={self.scalar}, gradient={self.gradient})"
@@ -109,6 +123,27 @@ class Node:
         res._backward = _backward
 
         return res
+
+    def sigmoid(self):
+        res = Node(1/(1 + np.exp(-self.scalar)), (self,), 'Sigmoid')
+
+        def _backward():
+            self.gradient += res.scalar * (1 - res.scalar)
+        
+        res._backward = _backward
+        
+        return res
+
+    # Função de softmax - Recebe um valor e uma lista de outros nós
+    def softmax(self, x):
+        sum_softmax = 0
+        for xi in x:
+            sum_softmax = np.exp(xi.scalar)
+
+        softmax_score = np.exp(self.scalar) / sum_softmax
+
+        return softmax_score
+
 
     # Baseando-se em um nó podemos realizar o backpropagation dele para os outros elementos
     # Para isso, iremos seguir a ordem contrária com que o grafo computacional é construído
